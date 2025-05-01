@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { useReducer } from "react";
 
 export default function Home() {
   return (
