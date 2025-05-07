@@ -1,103 +1,162 @@
-import Image from "next/image";
+"use client";
+
+import Chat from "./components/Chat";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls, Environment } from "@react-three/drei";
+import { JayModel } from "./components/models/JayModel";
+import { useState } from "react";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [visemeData, setVisemeData] = useState<unknown[]>([]);
+  const handleReply = (data: {
+    text: string;
+    visemes: number[];
+    audioBase64: string;
+  }) => {
+    setVisemeData(data.visemes);
+    const audio = new Audio(`data:audio/wav;base64,${data.audioBase64}`);
+    audio.play();
+  };
+  // ✅ Sample Azure-style viseme data (replace with real response)
+  // const visemeData = [
+  //   {
+  //     visemeId: 0,
+  //     audioOffset: 500000,
+  //   },
+  //   {
+  //     visemeId: 12,
+  //     audioOffset: 1000000,
+  //   },
+  //   {
+  //     visemeId: 4,
+  //     audioOffset: 2125000,
+  //   },
+  //   {
+  //     visemeId: 14,
+  //     audioOffset: 2750000,
+  //   },
+  //   {
+  //     visemeId: 8,
+  //     audioOffset: 3625000,
+  //   },
+  //   {
+  //     visemeId: 4,
+  //     audioOffset: 5250000,
+  //   },
+  //   {
+  //     visemeId: 0,
+  //     audioOffset: 6870000,
+  //   },
+  //   {
+  //     visemeId: 0,
+  //     audioOffset: 14500000,
+  //   },
+  //   {
+  //     visemeId: 12,
+  //     audioOffset: 15000000,
+  //   },
+  //   {
+  //     visemeId: 9,
+  //     audioOffset: 16125000,
+  //   },
+  //   {
+  //     visemeId: 20,
+  //     audioOffset: 17250000,
+  //   },
+  //   {
+  //     visemeId: 1,
+  //     audioOffset: 17875000,
+  //   },
+  //   {
+  //     visemeId: 19,
+  //     audioOffset: 18125000,
+  //   },
+  //   {
+  //     visemeId: 11,
+  //     audioOffset: 18625000,
+  //   },
+  //   {
+  //     visemeId: 1,
+  //     audioOffset: 20000000,
+  //   },
+  //   {
+  //     visemeId: 15,
+  //     audioOffset: 20875000,
+  //   },
+  //   {
+  //     visemeId: 6,
+  //     audioOffset: 21625000,
+  //   },
+  //   {
+  //     visemeId: 15,
+  //     audioOffset: 22625000,
+  //   },
+  //   {
+  //     visemeId: 19,
+  //     audioOffset: 23250000,
+  //   },
+  //   {
+  //     visemeId: 6,
+  //     audioOffset: 23875000,
+  //   },
+  //   {
+  //     visemeId: 7,
+  //     audioOffset: 24375000,
+  //   },
+  //   {
+  //     visemeId: 19,
+  //     audioOffset: 24875000,
+  //   },
+  //   {
+  //     visemeId: 4,
+  //     audioOffset: 25500000,
+  //   },
+  //   {
+  //     visemeId: 19,
+  //     audioOffset: 25875000,
+  //   },
+  //   {
+  //     visemeId: 4,
+  //     audioOffset: 26500000,
+  //   },
+  //   {
+  //     visemeId: 6,
+  //     audioOffset: 27937500,
+  //   },
+  //   {
+  //     visemeId: 0,
+  //     audioOffset: 29370000,
+  //   },
+  // ];
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+  return (
+    <main style={{ padding: 24 }}>
+      <Chat onReply={handleReply} />
+      <div style={{ width: "100vw", height: "100vh" }}>
+        <Canvas
+          camera={{ position: [0, 1, 2.5], fov: 40 }}
+          shadows
+          gl={{ antialias: true }}
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+          {/* Lights */}
+          <ambientLight intensity={0.3} />
+          <directionalLight position={[2, 4, 2]} intensity={1} castShadow />
+
+          {/* Environment map for nice lighting */}
+          <Environment preset="sunset" />
+
+          {/* Avatar */}
+          <JayModel
+            scale={1}
+            position={[0, -1.1, 1]}
+            rotation={[0, 0, 0]}
+            visemeData={visemeData}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+          {/* Orbit controls for dragging/zooming the view */}
+          <OrbitControls enablePan={false} />
+        </Canvas>
+      </div>
+    </main>
   );
 }
