@@ -23,46 +23,32 @@ const visemeToBlendshape: Record<number, string> = {
   12: "viseme_I",
   13: "viseme_O",
   14: "viseme_U",
-  15: "viseme_sil",
+  15: "viseme_sil", // fallback
 };
 
 export function JayModel(props) {
-  const { visemeData, ...restProps } = props;
+  const { visemeData = [], ...restProps } = props;
   const group = useRef();
   const startTime = useRef(performance.now());
 
   const { nodes, materials, animations } = useGLTF("/models/jay.glb");
-  useAnimations(animations, group);
+  const { actions } = useAnimations(animations, group);
 
-  const blinkTimer = useRef(0);
-  const lastBlinkTime = useRef(0);
-  const headBone = nodes?.Head || nodes?.head || null;
-
+  // Start built-in Avaturn animation
   useEffect(() => {
-    if (visemeData && visemeData.length > 0) {
+    actions["avaturn_animation"]?.play();
+  }, [actions]);
+
+  // Reset timer when visemeData changes
+  useEffect(() => {
+    if (visemeData.length > 0) {
       startTime.current = performance.now();
     }
-
-    // 🧠 Lower both arms into rest position
-    const bonesToAdjust = [
-      { name: "LeftUpperArm", axis: "z", angle: Math.PI / 3 },
-      { name: "RightUpperArm", axis: "z", angle: -Math.PI / 3 },
-      { name: "LeftLowerArm", axis: "z", angle: Math.PI / 4 },
-      { name: "RightLowerArm", axis: "z", angle: -Math.PI / 4 },
-    ];
-
-    bonesToAdjust.forEach(({ name, axis, angle }) => {
-      const bone = nodes[name];
-      if (bone && bone.rotation) {
-        bone.rotation[axis] = angle;
-      }
-    });
   }, [visemeData]);
 
-  useFrame((_, delta) => {
+  // Apply viseme animation
+  useFrame(() => {
     const elapsed = performance.now() - startTime.current;
-
-    // ✅ Lip sync (Head, Teeth, Tongue)
     const activeViseme = visemeData.findLast(
       (v) => v.audioOffset / 10000 <= elapsed
     );
@@ -83,45 +69,6 @@ export function JayModel(props) {
           influences[index] = 1;
         }
       }
-    }
-
-    // 👁 Eye blinking
-    blinkTimer.current += delta;
-    if (blinkTimer.current - lastBlinkTime.current > 3 + Math.random() * 2) {
-      const eyeMeshes = [nodes.Eye_Mesh, nodes.EyeAO_Mesh, nodes.Eyelash_Mesh];
-
-      eyeMeshes.forEach((mesh) => {
-        const dict = mesh?.morphTargetDictionary;
-        const influences = mesh?.morphTargetInfluences;
-
-        if (!dict || !influences) return;
-
-        const leftIndex = dict.eyeBlinkLeft;
-        const rightIndex = dict.eyeBlinkRight;
-        const closedIndex = dict.eyesClosed;
-
-        if (leftIndex !== undefined && rightIndex !== undefined) {
-          influences[leftIndex] = 1;
-          influences[rightIndex] = 1;
-          setTimeout(() => {
-            influences[leftIndex] = 0;
-            influences[rightIndex] = 0;
-          }, 150);
-        } else if (closedIndex !== undefined) {
-          influences[closedIndex] = 1;
-          setTimeout(() => {
-            influences[closedIndex] = 0;
-          }, 150);
-        }
-      });
-
-      lastBlinkTime.current = blinkTimer.current;
-    }
-
-    // 🧠 Subtle idle head movement
-    if (headBone) {
-      headBone.rotation.y = Math.sin(elapsed / 1000) * 0.05;
-      headBone.rotation.x = Math.sin(elapsed / 2500) * 0.02;
     }
   });
 
