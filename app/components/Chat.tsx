@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-
+import { Viseme } from "../stores/simulationStore";
 export default function Chat({
   onReply,
 }: {
   onReply: (data: {
+    personalityId: string;
     text: string;
-    visemes: number[];
+    visemes: Viseme[];
     audioBase64: string;
   }) => void;
 }) {
@@ -23,7 +24,7 @@ export default function Chat({
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: input }),
+      body: JSON.stringify({ message: input, personalityId: "1" }),
     });
 
     const data = await res.json();

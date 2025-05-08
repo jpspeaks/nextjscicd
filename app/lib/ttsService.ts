@@ -16,12 +16,12 @@ export const synthesizeSpeechWithVisemes = (
     speechConfig.requestWordLevelTimestamps();
     speechConfig.setProperty("SpeechServiceResponse_RequestViseme", "true");
 
-    const visemeData: { visemeId: number; audioOffset: number }[] = [];
+    const visemes: { visemeId: number; audioOffset: number }[] = [];
 
     const synthesizer = new sdk.SpeechSynthesizer(speechConfig);
 
     synthesizer.visemeReceived = (s, e) => {
-      visemeData.push({
+      visemes.push({
         visemeId: e.visemeId,
         audioOffset: e.audioOffset,
       });
@@ -32,7 +32,7 @@ export const synthesizeSpeechWithVisemes = (
       (result) => {
         if (result.reason === sdk.ResultReason.SynthesizingAudioCompleted) {
           const buffer = Buffer.from(result.audioData);
-          resolve({ audioBuffer: buffer, visemes: visemeData });
+          resolve({ audioBuffer: buffer, visemes: visemes });
         } else {
           reject(new Error("Synthesis failed"));
         }

@@ -27,7 +27,8 @@ const visemeToBlendshape: Record<number, string> = {
 };
 
 export function JayModel(props) {
-  const { visemeData = [], ...restProps } = props;
+  const { visemes = [], isSpeaking = false, ...restProps } = props;
+  const isSpeakingRef = useRef(isSpeaking);
   const group = useRef();
   const startTime = useRef(performance.now());
 
@@ -39,17 +40,24 @@ export function JayModel(props) {
     actions["avaturn_animation"]?.play();
   }, [actions]);
 
-  // Reset timer when visemeData changes
+  // Update ref when props change
   useEffect(() => {
-    if (visemeData.length > 0) {
+    isSpeakingRef.current = isSpeaking;
+  }, [isSpeaking]);
+
+  // Reset timer when visemes changes
+  useEffect(() => {
+    if (visemes.length > 0) {
       startTime.current = performance.now();
     }
-  }, [visemeData]);
+  }, [visemes, isSpeaking]);
 
   // Apply viseme animation
   useFrame(() => {
+    if (!isSpeakingRef.current || visemes.length === 0) return;
+
     const elapsed = performance.now() - startTime.current;
-    const activeViseme = visemeData.findLast(
+    const activeViseme = visemes.findLast(
       (v) => v.audioOffset / 10000 <= elapsed
     );
 
@@ -162,3 +170,5 @@ export function JayModel(props) {
 }
 
 useGLTF.preload("/models/jay.glb");
+
+export default JayModel;

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat Box with Iframe</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f4f4f9;
+        color: #333;
+        display: flex;
+        height: 100vh;
+        margin: 0;
+      }
+      #chat-box {
+        width: 30%;
+        height: 98%;
+        border: 1px solid #ddd;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        background-color: #fff;
+        padding: 15px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+      }
+      #messages {
+        flex-grow: 1;
+        overflow-y: auto;
+        margin-bottom: 15px;
+        display: flex;
+        flex-direction: column;
+        justify-content: end;
+      }
+      #input-container {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      #message-input {
+        flex-grow: 1;
+        padding: 10px;
+        border-radius: 20px;
+        border: 1px solid #ccc;
+        margin-right: 10px;
+        font-size: 14px;
+      }
+      #send-button {
+        padding: 10px 20px;
+        border-radius: 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.3s ease;
+      }
+      #send-button:hover {
+        background-color: #0056b3;
+      }
+      .message {
+        padding: 10px;
+        border-radius: 20px;
+        margin-bottom: 10px;
+        max-width: 80%;
+        font-size: 14px;
+      }
+      .message.sent {
+        background-color: #007bff;
+        color: white;
+        align-self: flex-end;
+        margin-left: auto;
+      }
+      .message.received {
+        background-color: #e0e0e0;
+        color: black;
+        align-self: flex-start;
+        margin-right: auto;
+      }
+      #chat-iframe {
+        width: 70%;
+        height: 98%;
+        border: none;
+      }
+    </style>
+  </head>
+  <body>
+    <iframe
+      allow="autoplay"
+      id="chat-iframe"
+      src="http://localhost:3000"
+    ></iframe>
+
+    <div id="chat-box">
+      <div id="messages"></div>
+      <div id="input-container">
+        <input type="text" id="message-input" placeholder="Type a message..." />
+        <button id="send-button">Send</button>
+      </div>
+    </div>
+
+    <script>
+      const chatBox = document.getElementById("chat-box");
+      const messageInput = document.getElementById("message-input");
+      const sendButton = document.getElementById("send-button");
+      const chatIframe = document.getElementById("chat-iframe");
+
+      chatIframe.onload = function () {
+        setTimeout(() => {
+          chatIframe.contentWindow.postMessage(
+            {
+              type: "INITIALIZE_SIMULATION",
+              payload: {
+                characterIds: ["1_1"],
+                environmentId: "1",
+              },
+            },
+            "*"
+          );
+        }, 3000);
+      };
+
+      // Function to append messages to the chat box
+      function appendMessage(message, from) {
+        const messageElement = document.createElement("div");
+        messageElement.textContent = message;
+        messageElement.classList.add("message");
+        if (from === "USER") {
+          messageElement.classList.add("sent");
+        } else if (from === "AI") {
+          messageElement.classList.add("received");
+        }
+        document.getElementById("messages").appendChild(messageElement);
+        // Scroll to the bottom of the messages container
+        const messagesContainer = document.getElementById("messages");
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+
+      // Send message to iframe
+      sendButton.addEventListener("click", () => {
+        const message = messageInput.value;
+        if (message) {
+          const messageObject = {
+            type: "CHAT",
+            payload: {
+              characterId: "1_1",
+              message: message,
+            },
+          };
+          chatIframe.contentWindow.postMessage(messageObject, "*");
+          messageInput.value = "";
+        }
+      });
+
+      // Listen for messages from iframe
+      window.addEventListener("message", (event) => {
+        let { type, payload } = event.data;
+        if (type === "CHAT") {
+          appendMessage(payload.message, payload.from);
+        }
+      });
+    </script>
+  </body>
+</html>
