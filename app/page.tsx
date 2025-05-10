@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Environment } from "@react-three/drei";
 import { useSimulationStore } from "./stores/simulationStore";
 import Character from "./components/Character";
+import Loading from "./components/Loading";
+import EnvironmentModel from "./components/Environment";
+import Scene from "./components/Scene";
+
 // const visemes = [
 //   {
 //     visemeId: 0,
@@ -117,8 +120,13 @@ import Character from "./components/Character";
 // ];
 
 export default function Home() {
-  const { characters, setCharacters, setCharacterSpeaking, setEnvironmentId } =
-    useSimulationStore();
+  const {
+    characters,
+    environmentId,
+    setCharacters,
+    setCharacterSpeaking,
+    setEnvironmentId,
+  } = useSimulationStore();
   const [, setIsSending] = useState(false);
 
   const sendMessage = async (characterId: string, message: string) => {
@@ -144,7 +152,7 @@ export default function Home() {
         },
         "*"
       );
-
+      console.log("data:", data);
       setCharacterSpeaking(characterId, data.visemes);
 
       const audio = new Audio(`data:audio/wav;base64,${data.audioBase64}`);
@@ -226,6 +234,7 @@ export default function Home() {
     return () => {
       window.removeEventListener("message", handlePostMessage);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -236,27 +245,27 @@ export default function Home() {
           shadows
           gl={{ antialias: true }}
         >
-          {/* Lights */}
-          <ambientLight intensity={0.3} />
-          <directionalLight position={[2, 4, 2]} intensity={1} castShadow />
+          {/* Helper for debugging */}
+          {/* <Helpers /> */}
 
-          {/* Environment map for nice lighting */}
-          <Environment preset="sunset" />
+          {/* Lights and Environment */}
+          <Scene />
 
-          {/* Avatar */}
-          {characters.map((character) => {
-            return (
-              <Character
-                key={character.characterId}
-                characterId={character.characterId}
-                visemes={character.visemes}
-                isSpeaking={character.isSpeaking}
-              />
-            );
-          })}
-
-          {/* Orbit controls for dragging/zooming the view */}
-          <OrbitControls enablePan={false} />
+          <Suspense fallback={<Loading />}>
+            {/* Environment */}
+            <EnvironmentModel environmentId={environmentId} />
+            {/* Avatar */}
+            {characters.map((character) => {
+              return (
+                <Character
+                  key={character.characterId}
+                  characterId={character.characterId}
+                  visemes={character.visemes}
+                  isSpeaking={character.isSpeaking}
+                />
+              );
+            })}
+          </Suspense>
         </Canvas>
       </div>
     </main>

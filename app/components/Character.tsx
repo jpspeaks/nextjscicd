@@ -3,12 +3,17 @@ import { Viseme } from "../stores/simulationStore";
 
 const modelMap = {
   JayModel: lazy(() => import("./models/JayModel")),
+  RioModel: lazy(() => import("./models/RioModel")),
 };
 
 const avatars = [
   {
     id: "1",
     model: "JayModel",
+  },
+  {
+    id: "2",
+    model: "RioModel",
   },
 ];
 
@@ -28,8 +33,8 @@ function Character({
   return Avatar ? (
     <Avatar
       scale={1}
-      position={[0, -1.1, 1]}
-      rotation={[0, 0, 0]}
+      position={[0, 0, 0]}
+      rotation={[0, 0.5, 0]}
       visemes={visemes}
       isSpeaking={isSpeaking}
     />
