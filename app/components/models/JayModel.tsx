@@ -4,34 +4,11 @@
 
 import React, { useRef, useEffect } from "react";
 import { useGLTF, useAnimations } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
-
-// Viseme ID → blendshape names
-const visemeToBlendshape: Record<number, string> = {
-  0: "viseme_sil",
-  1: "viseme_PP",
-  2: "viseme_FF",
-  3: "viseme_TH",
-  4: "viseme_DD",
-  5: "viseme_kk",
-  6: "viseme_CH",
-  7: "viseme_SS",
-  8: "viseme_nn",
-  9: "viseme_RR",
-  10: "viseme_aa",
-  11: "viseme_E",
-  12: "viseme_I",
-  13: "viseme_O",
-  14: "viseme_U",
-  15: "viseme_sil", // fallback
-};
+import { useModelLipsync } from "@/app/hooks/useModelLipsync";
 
 export function JayModel(props) {
   const { visemes = [], isSpeaking = false, ...restProps } = props;
-  const isSpeakingRef = useRef(isSpeaking);
   const group = useRef();
-  const startTime = useRef(performance.now());
-
   const { nodes, materials, animations } = useGLTF("/models/jay.glb");
   const { actions } = useAnimations(animations, group);
 
@@ -40,44 +17,10 @@ export function JayModel(props) {
     actions["avaturn_animation"]?.play();
   }, [actions]);
 
-  // Update ref when props change
-  useEffect(() => {
-    isSpeakingRef.current = isSpeaking;
-  }, [isSpeaking]);
-
-  // Reset timer when visemes changes
-  useEffect(() => {
-    if (visemes.length > 0) {
-      startTime.current = performance.now();
-    }
-  }, [visemes, isSpeaking]);
-
-  // Apply viseme animation
-  useFrame(() => {
-    if (!isSpeakingRef.current || visemes.length === 0) return;
-
-    const elapsed = performance.now() - startTime.current;
-    const activeViseme = visemes.findLast(
-      (v) => v.audioOffset / 10000 <= elapsed
-    );
-
-    const meshes = [nodes.Head_Mesh, nodes.Teeth_Mesh, nodes.Tongue_Mesh];
-
-    for (const mesh of meshes) {
-      const dict = mesh?.morphTargetDictionary;
-      const influences = mesh?.morphTargetInfluences;
-      if (!dict || !influences) continue;
-
-      for (let i = 0; i < influences.length; i++) influences[i] = 0;
-
-      if (activeViseme) {
-        const morphName = visemeToBlendshape[activeViseme.visemeId];
-        const index = dict[morphName];
-        if (index !== undefined) {
-          influences[index] = 1;
-        }
-      }
-    }
+  useModelLipsync({
+    visemes,
+    isSpeaking,
+    nodes,
   });
 
   return (
