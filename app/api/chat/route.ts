@@ -1,17 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getGPTResponse } from "../../lib/gptService";
 import { synthesizeSpeechWithVisemes } from "../../lib/ttsService";
+import fetch from "node-fetch";
 
 export async function POST(req: NextRequest) {
-  const { message, personalityId } = await req.json();
+  const { message, personalityId, sessionId } = await req.json();
 
   try {
-    const text = await getGPTResponse(message);
-    const { audioBuffer, visemes } = await synthesizeSpeechWithVisemes(text);
+    const response = await fetch(
+      "https://jpspeak0316.app.n8n.cloud/webhook/chat",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message,
+          personalityId,
+          sessionId,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to send request");
+    }
+
+    const { output } = await response.json();
+
+    const { audioBuffer, visemes } = await synthesizeSpeechWithVisemes(output);
 
     return NextResponse.json({
       personalityId,
-      message: text,
+      message: output,
       audioBase64: audioBuffer.toString("base64"),
       visemes,
     });

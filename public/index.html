@@ -112,7 +112,7 @@
             {
               type: "INITIALIZE_SIMULATION",
               payload: {
-                characterIds: ["1_1"],
+                characterIds: ["1_681ef76a1bc373301da1aa5e"],
                 environmentId: "1",
               },
             },
@@ -139,13 +139,15 @@
 
       // Send message to iframe
       sendButton.addEventListener("click", () => {
+        const SIMULATION_ID = "4";
         const message = messageInput.value;
         if (message) {
           const messageObject = {
             type: "CHAT",
             payload: {
-              characterId: "1_1",
+              characterId: "1_681ef76a1bc373301da1aa5e",
               message: message,
+              sessionId: SIMULATION_ID,
             },
           };
           chatIframe.contentWindow.postMessage(messageObject, "*");
