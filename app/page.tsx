@@ -129,14 +129,18 @@ export default function Home() {
   } = useSimulationStore();
   const [, setIsSending] = useState(false);
 
-  const sendMessage = async (characterId: string, message: string) => {
+  const sendMessage = async (
+    characterId: string,
+    message: string,
+    sessionId: string
+  ) => {
     setIsSending(true);
     const personalityId = characterId.split("_")[1];
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ personalityId, message }),
+        body: JSON.stringify({ personalityId, message, sessionId }),
       });
 
       const data = await res.json();
@@ -214,6 +218,7 @@ export default function Home() {
         console.log("Received message from parent:", payload);
         // payload.characterId is avatarId + _ + personalityId
         // payload.message is the message to be sent
+        // payload.sessionId is the session id same id as the simulationId
         window.parent.postMessage(
           {
             type: "CHAT",
@@ -224,7 +229,7 @@ export default function Home() {
           },
           "*"
         );
-        sendMessage(payload.characterId, payload.message);
+        sendMessage(payload.characterId, payload.message, payload.sessionId);
       }
     };
 
